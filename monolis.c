@@ -135,10 +135,9 @@ void gettoken (void) {
 		stok.ch = NIL;
 		return;
 	}
-	c = getchar();
-	while ((c == SPACE) || (c == EOL) || (c == TAB)) {
-		c = getchar();
-	}
+
+	for(;isspace(c = getchar());){;}
+
 	switch(c) {
 		case '(': stok.type = LPAREN; break;
 		case ')': stok.type = RPAREN; break;
@@ -166,48 +165,45 @@ void gettoken (void) {
 	}
 }
 int numbertoken(char buf[]){
-    int i;
-    char c;
-    
-    if((buf[0] == '+') || (buf[0] == '-')){
-        if(buf[1] == NUL)
-            return(0); // case {+,-} => symbol
-        i = 1;
-        while((c=buf[i]) != NUL)
-            if(isdigit(c))
-                i++;  // case {+123..., -123...}
-            else
-                return(0); 
+    int i=0;
+    int true = 0, false = 1;    
+
+    if((buf[i] == '+') || (buf[i] == '-')){
+    	i++;
+        if(buf[1] == NUL) {
+            return(false); // case {+,-} => symbol
+        }
     }
-    else {       
-        i = 0;    // {1234...}
-        while((c=buf[i]) != NUL)
-            if(isdigit(c))
-                i++;
-            else 
-                return(0);
+
+    // {1234...}       
+    for (i=0;isdigit(c = buf[i]);i++) {
+        if(c == NUL) {
+            return(true);
+        }
     }
-    return(1);
+
+    return(false);
 }
 
 int symboltoken(char buf[]){
-    int i;
+    int i=0,true = 0,false = 1;
     char c;
     
-    if(isdigit(buf[0]))
-        return(0);
+    if(isdigit(buf[i])){
+        return(true);
+    }
     
-    i = 0;
-    while((c=buf[i]) != NUL)
-        if((isalpha(c)) || (isdigit(c)) || (issymch(c)))
-            i++;
-        else 
-            return(0);
+    for(;(isalpha(c=buf[i])) || (isdigit(c)) || (issymch(c));i++) {
+        if (c == NUL) {
+            return(true);
+        }
+    }
     
-    return(1);
+    return(false);
 }
 
 int issymch(char c){
+	int true = 0, false = 1;
     switch(c){
         case '!':
         case '?':
@@ -217,8 +213,8 @@ int issymch(char c){
         case '/':
         case '=':
         case '<':
-        case '>': return(1);
-        default:  return(0);
+        case '>': return(false);
+        default:  return(true);
     }
 }  
 
