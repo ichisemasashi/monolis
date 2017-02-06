@@ -17,7 +17,7 @@ void gettoken(void);
 int numbertoken(char buf[]);
 int symboltoken(char buf[]);
 int issymch(char c);
-
+int makenum(int num);
 /* セル構造 */
 typedef enum tag {EMP,NUM,SYM,LIS,SUBR,FSUBR,FUNC} tag;
 typedef enum flag {FRE,USE} flag;
@@ -217,8 +217,15 @@ int issymch(char c){
         default:  return(true);
     }
 }  
+#define SET_NUMBER(addr,x)  heap[addr].val.num = x
 
-
+int makenum(int num) {
+	int addr;
+	addr = freshcell();
+	SET_TAG(addr, NUM);
+	SET_NUMBER(addr, num);
+	return (addr);
+}
 
 
 
