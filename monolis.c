@@ -18,6 +18,9 @@ int numbertoken(char buf[]);
 int symboltoken(char buf[]);
 int issymch(char c);
 int makenum(int num);
+int read (void);
+int readlist(void);
+
 /* セル構造 */
 typedef enum tag {EMP,NUM,SYM,LIS,SUBR,FSUBR,FUNC} tag;
 typedef enum flag {FRE,USE} flag;
@@ -227,7 +230,32 @@ int makenum(int num) {
 	return (addr);
 }
 
-
+int read (void){
+	gettoken();
+	switch(stok.type) {
+		case NUMBER: return (makenum(atoi(stok.buf)));
+		case SYMBOL: return (makesym(stok.buf));
+		case QUOTE:  return (cons(makesym("quote"),cons(read(),NIL)));
+		case LPAREN: return (readlist());
+	}
+	error(CANT_READ_ERR,"read",NIL);
+}
+int readlist(void){
+	int car,cdr;
+	gettoken();
+	if(stok.type == RPAREN) {
+		return(NIL);
+	} else if (stok.type == DOT) {
+		cdr = read();
+		if (atomp (cdr)) {gettoken();}
+		return(cdr);
+	} else {
+		stok.flag = BACK;
+		car = read();
+		cdr = readlist();
+		return(cons(car,cdr));
+	}
+}
 
 
 
