@@ -257,7 +257,17 @@ int readlist(void){
 	}
 }
 
-
+void print (int addr) {
+	switch (GET_TAG(addr)){
+		case NUM: print("%d",GET_NUMBER(addr));break;
+		case SYM: printf("%s",GET_NAME(addr)); break;
+		case SUBR: printf("<subr>");break;
+		case FSUBR: printf("<fsubr>"); break;
+		case FUNC: printf("<function>"); break;
+		case LIS: {printf("(");
+				   printlist(addr);break;}
+	}
+}
 
 
 
