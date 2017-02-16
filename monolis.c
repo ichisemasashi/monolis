@@ -269,7 +269,23 @@ void print (int addr) {
 	}
 }
 
-
+void printlist (int addr) {
+	if (IS_NIL(addr)) {
+		printf (")");
+	} else if ( (! (listp(cdr(addr)))) &&
+  	            (! (nullp(cdr(addr))))) {
+		print(car(addr));
+		printf(" . ");
+		print(cdr(addr));
+		printf(")");
+	} else {
+		print(GET_CAR(addr));
+		if (! (IS_NIL(GET_CDR(addr)))) {
+			printf (" ");
+		}
+		printlist(GET_CDR(addr));
+	}
+}
 
 
 
