@@ -20,6 +20,12 @@ int issymch(char c);
 int makenum(int num);
 int read (void);
 int readlist(void);
+void print (int addr);
+void printlist (int addr);
+int listp(int addr);
+int nullp(int addr);
+int cdr(int addr);
+int car(int addr);
 
 /* セル構造 */
 typedef enum tag {EMP,NUM,SYM,LIS,SUBR,FSUBR,FUNC} tag;
@@ -257,6 +263,9 @@ int readlist(void){
 	}
 }
 
+#define GET_NUMBER(addr)    heap[addr].val.num
+#define GET_NAME(addr)      heap[addr].name
+
 void print (int addr) {
 	switch (GET_TAG(addr)){
 		case NUM: print("%d",GET_NUMBER(addr));break;
@@ -268,6 +277,8 @@ void print (int addr) {
 				   printlist(addr);break;}
 	}
 }
+
+#define IS_NIL(addr)        (addr == 0 || addr == 1)
 
 void printlist (int addr) {
 	if (IS_NIL(addr)) {
@@ -287,6 +298,33 @@ void printlist (int addr) {
 	}
 }
 
+#define IS_LIST(addr)       heap[addr].tag == LIS
+
+int listp(int addr){    
+	int true = 0, false = 1;
+    if(IS_LIST(addr) || IS_NIL(addr)) {
+        return(false);
+    } else {
+        return(true);
+    }
+}
+
+int nullp(int addr){
+	int true = 0, false = 1;
+    if(IS_NIL(addr)) {
+        return(false);
+    } else {
+        return(true);
+    }
+}
+
+int car(int addr){
+    return(GET_CAR(addr));
+}
+
+int cdr(int addr){
+    return(GET_CDR(addr));
+}
 
 
 
