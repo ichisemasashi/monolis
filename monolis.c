@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <setjmp.h>
 
 /* 関数一覧 */
 void initcell (void);
@@ -26,6 +27,7 @@ int listp(int addr);
 int nullp(int addr);
 int cdr(int addr);
 int car(int addr);
+int atomp(int addr);
 
 /* セル構造 */
 typedef enum tag {EMP,NUM,SYM,LIS,SUBR,FSUBR,FUNC} tag;
@@ -175,12 +177,13 @@ void gettoken (void) {
 }
 int numbertoken(char buf[]){
     int i=0;
-    int true = 0, false = 1;    
+    int true = 1, false = 0;
+    char c;    
 
     if((buf[i] == '+') || (buf[i] == '-')){
     	i++;
         if(buf[1] == NUL) {
-            return(false); // case {+,-} => symbol
+            return(true); // case {+,-} => symbol
         }
     }
 
@@ -195,7 +198,7 @@ int numbertoken(char buf[]){
 }
 
 int symboltoken(char buf[]){
-    int i=0,true = 0,false = 1;
+    int i=0,true = 1,false = 0;
     char c;
     
     if(isdigit(buf[i])){
@@ -212,7 +215,7 @@ int symboltoken(char buf[]){
 }
 
 int issymch(char c){
-	int true = 0, false = 1;
+	int true = 1, false = 0;
     switch(c){
         case '!':
         case '?':
@@ -222,8 +225,8 @@ int issymch(char c){
         case '/':
         case '=':
         case '<':
-        case '>': return(false);
-        default:  return(true);
+        case '>': return(true);
+        default:  return(false);
     }
 }  
 #define SET_NUMBER(addr,x)  heap[addr].val.num = x
@@ -235,6 +238,8 @@ int makenum(int num) {
 	SET_NUMBER(addr, num);
 	return (addr);
 }
+
+#define CANT_READ_ERR   10
 
 int read (void){
 	gettoken();
@@ -268,7 +273,7 @@ int readlist(void){
 
 void print (int addr) {
 	switch (GET_TAG(addr)){
-		case NUM: print("%d",GET_NUMBER(addr));break;
+		case NUM: printf("%d",GET_NUMBER(addr));break;
 		case SYM: printf("%s",GET_NAME(addr)); break;
 		case SUBR: printf("<subr>");break;
 		case FSUBR: printf("<fsubr>"); break;
@@ -301,20 +306,20 @@ void printlist (int addr) {
 #define IS_LIST(addr)       heap[addr].tag == LIS
 
 int listp(int addr){    
-	int true = 0, false = 1;
+	int true = 1, false = 0;
     if(IS_LIST(addr) || IS_NIL(addr)) {
-        return(false);
-    } else {
         return(true);
+    } else {
+        return(false);
     }
 }
 
 int nullp(int addr){
-	int true = 0, false = 1;
+	int true = 1, false = 0;
     if(IS_NIL(addr)) {
-        return(false);
-    } else {
         return(true);
+    } else {
+        return(false);
     }
 }
 
@@ -325,8 +330,45 @@ int car(int addr){
 int cdr(int addr){
     return(GET_CDR(addr));
 }
+#define IS_NUMBER(addr)     heap[addr].tag == NUM
+#define IS_SYMBOL(addr)     heap[addr].tag == SYM
+
+int atomp(int addr){
+	int true=1,false=0;
+    if((IS_NUMBER(addr)) || (IS_SYMBOL(addr))) {
+        return(true);
+    }else{
+        return(false);
+    }
+}
 
 
+jmp_buf buf;
+void main (void) {
+	int loop=1,  true = 1, false = 0;
+	printf ("MonoLis Ver0.01\n");
+	initcell();
+	initsubr();
+	int ret = setjmp(buf);
 
+	repl:
+	if(ret==true) {
+		while(loop) {
+			printf("> ");
+			fflush(stdout);
+			fflush(stdin);
+			print(eval(read()));
+			printf("\n");
+			fflush(stdout);
+		}
+	} else {
+		if(ret == false){
+			ret = true;
+			goto repl;
+		} else {
+			return;
+		}
+	}
+}
 
 
