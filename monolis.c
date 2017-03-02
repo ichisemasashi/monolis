@@ -28,6 +28,16 @@ int nullp(int addr);
 int cdr(int addr);
 int car(int addr);
 int atomp(int addr);
+int findsym(int sym);
+int eval (int addr);
+int assoc(int sym, int lis);
+int eqp(int addr1, int addr2);
+int atomp(int addr);
+int numberp(int addr);
+int symbolp(int addr);
+int listp(int addr);
+int nullp(int addr);
+
 
 /* セル構造 */
 typedef enum tag {EMP,NUM,SYM,LIS,SUBR,FSUBR,FUNC} tag;
@@ -66,7 +76,7 @@ void initcell (void) {
 	ep = makesym("nil"); /* 環境リストの先頭番地 */
 	assocsym(makesym("nil"),NIL);
 	assocsym(makesym("t"),makesym("t"));
-	
+
 	sp = 0; /* スタックの先頭番地 */
 	ap = 0; /* 引数リストの先頭番地. GCで利用する。 */
 }
@@ -80,7 +90,7 @@ void initcell (void) {
 
 int freshcell(void){
     int res;
-    
+
     res = hp;
     hp = heap[hp].cdr;
     SET_CDR(res,0);
@@ -90,7 +100,7 @@ int freshcell(void){
 
 int makesym(char *name){
     int addr;
-    
+
     addr = freshcell();
     SET_TAG(addr,SYM);
     SET_NAME(addr,name);
@@ -103,7 +113,7 @@ void assocsym(int sym, int val){
 
 int cons(int car, int cdr){
     int addr;
-    
+
     addr = freshcell();
     SET_TAG(addr,LIS);
     SET_CAR(addr,car);
@@ -154,7 +164,7 @@ void gettoken (void) {
 		case ')': stok.type = RPAREN; break;
 		case '\'': stok.type = QUOTE; break;
 		case '.': stok.type = DOT; break;
-		default: 
+		default:
 		    pos = 0;
 		    stok.buf[pos++] = c;
 		    while ((c=getchar()!=EOL) &&
@@ -178,7 +188,7 @@ void gettoken (void) {
 int numbertoken(char buf[]){
     int i=0;
     int true = 1, false = 0;
-    char c;    
+    char c;
 
     if((buf[i] == '+') || (buf[i] == '-')){
     	i++;
@@ -187,7 +197,7 @@ int numbertoken(char buf[]){
         }
     }
 
-    // {1234...}       
+    // {1234...}
     for (i=0;isdigit(c = buf[i]);i++) {
         if(c == NUL) {
             return(true);
@@ -200,17 +210,17 @@ int numbertoken(char buf[]){
 int symboltoken(char buf[]){
     int i=0,true = 1,false = 0;
     char c;
-    
+
     if(isdigit(buf[i])){
         return(true);
     }
-    
+
     for(;(isalpha(c=buf[i])) || (isdigit(c)) || (issymch(c));i++) {
         if (c == NUL) {
             return(true);
         }
     }
-    
+
     return(false);
 }
 
@@ -228,7 +238,7 @@ int issymch(char c){
         case '>': return(true);
         default:  return(false);
     }
-}  
+}
 #define SET_NUMBER(addr,x)  heap[addr].val.num = x
 
 int makenum(int num) {
@@ -305,7 +315,7 @@ void printlist (int addr) {
 
 #define IS_LIST(addr)       heap[addr].tag == LIS
 
-int listp(int addr){    
+int listp(int addr){
 	int true = 1, false = 0;
     if(IS_LIST(addr) || IS_NIL(addr)) {
         return(true);
@@ -371,4 +381,119 @@ void main (void) {
 	}
 }
 
+#define IS_SYMBOL(addr)     heap[addr].tag == SYM
+#define IS_NUMBER(addr)     heap[addr].tag == NUM
+#define IS_LIST(addr)       heap[addr].tag == LIS
+#define IS_NIL(addr)        (addr == 0 || addr == 1)
+#define IS_SUBR(addr)       heap[addr].tag == SUBR
+#define IS_FSUBR(addr)      heap[addr].tag == FSUBR
+#define IS_FUNC(addr)       heap[addr].tag == FUNC
+#define IS_EMPTY(addr)      heap[addr].tag  == EMP
+#define HAS_NAME(addr,x)    strcmp(heap[addr].name,x) == 0
 
+int eval (int addr) {
+	int res;
+
+	if (atomp(addr)) {
+		if (numberp(addr)) {
+			return(addr);
+		} else if (symbolp(addr)) {
+			res = findsym(addr);
+			if (res == 0) {
+				error(CANT_FIND_ERR, "eval", addr);
+			} else {
+				switch (GET_TAG(res)) {
+					case NUM: return(res);
+					case SYM: return(res);
+					case LIS: return(res);
+					case SUBR: return(res);
+					case FSUBR: return(res);
+					case FUNC: return(res);
+				}
+			}
+		}
+	} else if (listp(addr)) {
+		if ((symbolp(car(addr))) && (HAS_NAME(car(addr), "quote"))) {
+			return (cadr(addr));
+		} else if (numberp(car(addr))) {
+			error(ARG_SYM_ERR, "eval", addr);
+		} else if (subrp(car(addr))) {
+			return(apply(car(addr),evlis(cdr(addr))));
+		} else if (fsubrp(car(addr))) {
+			return(apply(car(addr),cdr(addr)));
+		} else if (functionp(car(addr))) {
+			return(apply(car(addr),evlis(cdr(addr))));
+		}
+		error(CANT_FIND_ERR, "eval", addr);
+		return(0);
+	}
+}
+
+int findsym(int sym){
+	int addr;
+	addr = assoc(sym,ep);
+	if (addr == 0) {
+		return (-1);
+	} else {
+		return (cdr(addr));
+	}
+}
+
+int assoc(int sym, int lis) {
+	if(nullp(lis)) {
+		return(0);
+	} else if (eqp(sym, caar(lis))) {
+		return(car(lis));
+	} else {
+		return(assoc(sym, cdr(lis)));
+	}
+}
+int eqp(int addr1, int addr2){
+    if((numberp(addr1)) && (numberp(addr2))
+        && ((GET_NUMBER(addr1)) == (GET_NUMBER(addr2))))
+        return(1);
+    else if ((symbolp(addr1)) && (symbolp(addr2))
+        && (SAME_NAME(addr1,addr2)))
+        return(1);
+    else
+        return(0);
+}
+int atomp(int addr){
+    if((IS_NUMBER(addr)) || (IS_SYMBOL(addr))) {
+			return(1);
+		} else {
+			return(0);
+		}
+}
+
+int numberp(int addr){
+    if(IS_NUMBER(addr)) {
+			return(1);
+		} else {
+			return(0);
+		}
+}
+
+int symbolp(int addr){
+    if(IS_SYMBOL(addr)) {
+			return(1);
+		} else {
+			return(0);
+		}
+}
+
+int listp(int addr){
+    if(IS_LIST(addr) || IS_NIL(addr)) {
+			return(1);
+		}  else {
+			return(0);
+		}
+}
+
+int nullp(int addr){
+    if(IS_NIL(addr)) {
+			return(1);
+		} else {
+			return(0);
+		}
+}
