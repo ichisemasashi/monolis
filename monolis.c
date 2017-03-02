@@ -38,6 +38,7 @@ int symbolp(int addr);
 int listp(int addr);
 int nullp(int addr);
 
+int true=1,false=0;
 
 /* セル構造 */
 typedef enum tag {EMP,NUM,SYM,LIS,SUBR,FSUBR,FUNC} tag;
@@ -187,7 +188,6 @@ void gettoken (void) {
 }
 int numbertoken(char buf[]){
     int i=0;
-    int true = 1, false = 0;
     char c;
 
     if((buf[i] == '+') || (buf[i] == '-')){
@@ -208,7 +208,7 @@ int numbertoken(char buf[]){
 }
 
 int symboltoken(char buf[]){
-    int i=0,true = 1,false = 0;
+    int i=0;
     char c;
 
     if(isdigit(buf[i])){
@@ -225,7 +225,6 @@ int symboltoken(char buf[]){
 }
 
 int issymch(char c){
-	int true = 1, false = 0;
     switch(c){
         case '!':
         case '?':
@@ -316,7 +315,6 @@ void printlist (int addr) {
 #define IS_LIST(addr)       heap[addr].tag == LIS
 
 int listp(int addr){
-	int true = 1, false = 0;
     if(IS_LIST(addr) || IS_NIL(addr)) {
         return(true);
     } else {
@@ -325,7 +323,6 @@ int listp(int addr){
 }
 
 int nullp(int addr){
-	int true = 1, false = 0;
     if(IS_NIL(addr)) {
         return(true);
     } else {
@@ -344,7 +341,6 @@ int cdr(int addr){
 #define IS_SYMBOL(addr)     heap[addr].tag == SYM
 
 int atomp(int addr){
-	int true=1,false=0;
     if((IS_NUMBER(addr)) || (IS_SYMBOL(addr))) {
         return(true);
     }else{
@@ -355,7 +351,7 @@ int atomp(int addr){
 
 jmp_buf buf;
 void main (void) {
-	int loop=1,  true = 1, false = 0;
+	int loop=1;
 	printf ("MonoLis Ver0.01\n");
 	initcell();
 	initsubr();
@@ -425,7 +421,7 @@ int eval (int addr) {
 			return(apply(car(addr),evlis(cdr(addr))));
 		}
 		error(CANT_FIND_ERR, "eval", addr);
-		return(0);
+		return(false);
 	}
 }
 
@@ -441,7 +437,7 @@ int findsym(int sym){
 
 int assoc(int sym, int lis) {
 	if(nullp(lis)) {
-		return(0);
+		return(false);
 	} else if (eqp(sym, caar(lis))) {
 		return(car(lis));
 	} else {
@@ -451,49 +447,49 @@ int assoc(int sym, int lis) {
 int eqp(int addr1, int addr2){
     if((numberp(addr1)) && (numberp(addr2))
         && ((GET_NUMBER(addr1)) == (GET_NUMBER(addr2))))
-        return(1);
+        return(true);
     else if ((symbolp(addr1)) && (symbolp(addr2))
         && (SAME_NAME(addr1,addr2)))
-        return(1);
+        return(true);
     else
-        return(0);
+        return(false);
 }
 int atomp(int addr){
     if((IS_NUMBER(addr)) || (IS_SYMBOL(addr))) {
-			return(1);
+			return(true);
 		} else {
-			return(0);
+			return(false);
 		}
 }
 
 int numberp(int addr){
     if(IS_NUMBER(addr)) {
-			return(1);
+			return(true);
 		} else {
-			return(0);
+			return(false);
 		}
 }
 
 int symbolp(int addr){
     if(IS_SYMBOL(addr)) {
-			return(1);
+			return(true);
 		} else {
-			return(0);
+			return(false);
 		}
 }
 
 int listp(int addr){
     if(IS_LIST(addr) || IS_NIL(addr)) {
-			return(1);
+			return(true);
 		}  else {
-			return(0);
+			return(false);
 		}
 }
 
 int nullp(int addr){
     if(IS_NIL(addr)) {
-			return(1);
+			return(true);
 		} else {
-			return(0);
+			return(false);
 		}
 }
