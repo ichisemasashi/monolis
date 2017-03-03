@@ -37,6 +37,7 @@ int numberp(int addr);
 int symbolp(int addr);
 int listp(int addr);
 int nullp(int addr);
+int caar(int addr)；
 
 int true=1,false=0;
 
@@ -377,8 +378,6 @@ void main (void) {
 	}
 }
 
-#define IS_SYMBOL(addr)     heap[addr].tag == SYM
-#define IS_NUMBER(addr)     heap[addr].tag == NUM
 #define IS_LIST(addr)       heap[addr].tag == LIS
 #define IS_NIL(addr)        (addr == 0 || addr == 1)
 #define IS_SUBR(addr)       heap[addr].tag == SUBR
@@ -444,6 +443,9 @@ int assoc(int sym, int lis) {
 		return(assoc(sym, cdr(lis)));
 	}
 }
+
+#define SAME_NAME(addr1,addr2) strcmp(heap[addr1].name, heap[addr2].name) == 0
+
 int eqp(int addr1, int addr2){
     if((numberp(addr1)) && (numberp(addr2))
         && ((GET_NUMBER(addr1)) == (GET_NUMBER(addr2))))
@@ -492,4 +494,8 @@ int nullp(int addr){
 		} else {
 			return(false);
 		}
+}
+
+int caar(int addr){
+    return(car(car(addr)));
 }
