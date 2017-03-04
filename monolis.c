@@ -41,6 +41,26 @@ int caar(int addr)；
 
 int true=1,false=0;
 
+#define SAME_NAME(addr1,addr2) strcmp(heap[addr1].name, heap[addr2].name) == 0
+#define IS_LIST(addr)       heap[addr].tag == LIS
+#define IS_NIL(addr)        (addr == 0 || addr == 1)
+#define IS_SUBR(addr)       heap[addr].tag == SUBR
+#define IS_FSUBR(addr)      heap[addr].tag == FSUBR
+#define IS_FUNC(addr)       heap[addr].tag == FUNC
+#define IS_EMPTY(addr)      heap[addr].tag  == EMP
+#define HAS_NAME(addr,x)    strcmp(heap[addr].name,x) == 0
+#define IS_NUMBER(addr)     heap[addr].tag == NUM
+#define IS_SYMBOL(addr)     heap[addr].tag == SYM
+#define GET_CAR(addr) heap[addr].car
+#define GET_CDR(addr) heap[addr].cdr
+#define SET_CAR(addr,x)     heap[addr].car = x
+#define SET_CDR(addr,x)     heap[addr].cdr = x
+#define SET_TAG(addr,x)     heap[addr].tag = x
+#define SET_NAME(addr,x)    heap[addr].name = (char *)malloc(SYMSIZE); strcpy(heap[addr].name,x);
+#define SET_NUMBER(addr,x)  heap[addr].val.num = x
+#define GET_NUMBER(addr)    heap[addr].val.num
+#define GET_NAME(addr)      heap[addr].name
+
 /* セル構造 */
 typedef enum tag {EMP,NUM,SYM,LIS,SUBR,FSUBR,FUNC} tag;
 typedef enum flag {FRE,USE} flag;
@@ -83,12 +103,6 @@ void initcell (void) {
 	ap = 0; /* 引数リストの先頭番地. GCで利用する。 */
 }
 
-#define GET_CAR(addr) heap[addr].car
-#define GET_CDR(addr) heap[addr].cdr
-#define SET_CAR(addr,x)     heap[addr].car = x
-#define SET_CDR(addr,x)     heap[addr].cdr = x
-#define SET_TAG(addr,x)     heap[addr].tag = x
-#define SET_NAME(addr,x)    heap[addr].name = (char *)malloc(SYMSIZE); strcpy(heap[addr].name,x);
 
 int freshcell(void){
     int res;
@@ -239,7 +253,6 @@ int issymch(char c){
         default:  return(false);
     }
 }
-#define SET_NUMBER(addr,x)  heap[addr].val.num = x
 
 int makenum(int num) {
 	int addr;
@@ -278,8 +291,6 @@ int readlist(void){
 	}
 }
 
-#define GET_NUMBER(addr)    heap[addr].val.num
-#define GET_NAME(addr)      heap[addr].name
 
 void print (int addr) {
 	switch (GET_TAG(addr)){
@@ -292,8 +303,6 @@ void print (int addr) {
 				   printlist(addr);break;}
 	}
 }
-
-#define IS_NIL(addr)        (addr == 0 || addr == 1)
 
 void printlist (int addr) {
 	if (IS_NIL(addr)) {
@@ -313,7 +322,6 @@ void printlist (int addr) {
 	}
 }
 
-#define IS_LIST(addr)       heap[addr].tag == LIS
 
 int listp(int addr){
     if(IS_LIST(addr) || IS_NIL(addr)) {
@@ -338,8 +346,6 @@ int car(int addr){
 int cdr(int addr){
     return(GET_CDR(addr));
 }
-#define IS_NUMBER(addr)     heap[addr].tag == NUM
-#define IS_SYMBOL(addr)     heap[addr].tag == SYM
 
 int atomp(int addr){
     if((IS_NUMBER(addr)) || (IS_SYMBOL(addr))) {
@@ -378,13 +384,6 @@ void main (void) {
 	}
 }
 
-#define IS_LIST(addr)       heap[addr].tag == LIS
-#define IS_NIL(addr)        (addr == 0 || addr == 1)
-#define IS_SUBR(addr)       heap[addr].tag == SUBR
-#define IS_FSUBR(addr)      heap[addr].tag == FSUBR
-#define IS_FUNC(addr)       heap[addr].tag == FUNC
-#define IS_EMPTY(addr)      heap[addr].tag  == EMP
-#define HAS_NAME(addr,x)    strcmp(heap[addr].name,x) == 0
 
 int eval (int addr) {
 	int res;
@@ -444,7 +443,6 @@ int assoc(int sym, int lis) {
 	}
 }
 
-#define SAME_NAME(addr1,addr2) strcmp(heap[addr1].name, heap[addr2].name) == 0
 
 int eqp(int addr1, int addr2){
     if((numberp(addr1)) && (numberp(addr2))
