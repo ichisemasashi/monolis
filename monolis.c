@@ -497,3 +497,20 @@ int nullp(int addr){
 int caar(int addr){
     return(car(car(addr)));
 }
+
+int evlis(int addr) {
+	int car_addr, cdr_addr;
+	argpush(addr);
+	checkgbc();
+	if(IS_NIL(addr)) {
+		argpop();
+		return(addr);
+	} else {
+		car_addr = eval(car(addr));
+		argpush(car_addr);
+		cdr_addr = evlis(cdr(addr));
+		argpop();
+		argpop();
+		return(cons(car_addr, cdr_addr));
+	}
+}
